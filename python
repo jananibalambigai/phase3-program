@@ -1,0 +1,49 @@
+from flask import Flask, render_template, request
+import pandas as pd
+import numpy as np
+from statsmodels.tsa.arima.model import ARIMA
+import matplotlib.pyplot as plt
+import io
+import base64
+
+app = Flask(_name_)
+
+# Sample demand data
+data = {
+    'date': pd.date_range(start='2023-01-01', periods=100),
+    'product_id': np.random.choice([101, 102, 103], 100),
+    'demand': np.random.randint(100, 500, 100)
+}
+df = pd.DataFrame(data)
+
+def forecast_demand(product_id, steps=5):
+    product_data = df[df['product_id'] == product_id]
+    ts = product_data.set_index('date')['demand']
+    model = ARIMA(ts, order=(5, 1, 0))
+    model_fit = model.fit()
+    forecast = model_fit.forecast(steps=steps)
+    return forecast
+
+def optimize_route():
+    locations = np.array([[37.7749, -122.4194], [34.0522, -118.2437], [40.7128, -74.0060]])
+    distances = np.linalg.norm(locations[:, np.newaxis] - locations, axis=2)
+    route = [0]
+    remaining = list(range(1, len(locations)))
+    while remaining:
+        last = route[-1]
+        next_loc = min(remaining, key=lambda x: distances[last][x])
+        route.append(next_loc)
+        remaining.remove(next_loc)
+    return route
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        product_id = int(request.form['product_id'])
+        forecast = forecast_demand(product_id)
+        route = optimize_route()
+        return render_template('index.html', forecast=forecast, route=route)
+    return render_template('index.html')
+
+if _name_ == '_main_':
+    app.run(debug=True)
