@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supply Chain Logistics Optimization</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        h1, h2 {
+            color: #007bff;
+        }
+        .section {
+            background-color: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="file"],
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        input[type="file"] {
+            background-color: #ddd;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #results-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+        }
+        #demand-forecast-results,
+        #route-optimization-results {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        pre {
+            white-space: pre-wrap; /* Preserve whitespace and wrap text */
+            font-family: monospace;
+            font-size: 14px;
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Supply Chain Logistics Optimization</h1>
+
+    <div class="section">
+        <h2>1. Demand Forecasting</h2>
+        <label for="sales-data">Upload Historical Sales Data (CSV):</label>
+        <input type="file" id="sales-data" accept=".csv">
+        <label for="product-id">Enter Product ID to Forecast:</label>
+        <input type="text" id="product-id" placeholder="e.g., ProductA">
+        <button onclick="runDemandForecasting()">Forecast Demand</button>
+        <div id="demand-forecast-results" style="display: none;">
+            <h3>Demand Forecasting Results:</h3>
+            <pre id="forecast-output"></pre>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>2. Route Optimization</h2>
+        <label for="location-data">Upload Location Data (CSV with Latitude, Longitude):</label>
+        <input type="file" id="location-data" accept=".csv">
+        <button onclick="runRouteOptimization()">Optimize Route</button>
+        <div id="route-optimization-results" style="display: none;">
+            <h3>Route Optimization Results:</h3>
+            <pre id="route-output"></pre>
+        </div>
+    </div>
+
+    <div id="results-container" style="display: none;">
+        <h2>Combined Results and Recommendations</h2>
+        <div id="combined-output"></div>
+    </div>
+
+    <script>
+        async function runDemandForecasting() {
+            const salesFile = document.getElementById('sales-data').files[0];
+            const productId = document.getElementById('product-id').value;
+            const forecastResultsDiv = document.getElementById('demand-forecast-results');
+            const forecastOutputPre = document.getElementById('forecast-output');
+
+            if (!salesFile || !productId) {
+                alert('Please upload a sales data file and enter a Product ID.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('sales_data', salesFile);
+            formData.append('product_id', productId);
+
+            forecastOutputPre.textContent = 'Forecasting demand...';
+            forecastResultsDiv.style.display = 'block';
+
+            try {
+                const response = await fetch('/api/forecast', { // Replace with your backend API endpoint
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                forecastOutputPre.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                console.error('Error during demand forecasting:', error);
+                forecastOutputPre.textContent = 'Error during demand forecasting.';
+            }
+        }
+
+        async function runRouteOptimization() {
+            const locationFile = document.getElementById('location-data').files[0];
+            const routeResultsDiv = document.getElementById('route-optimization-results');
+            const routeOutputPre = document.getElementById('route-output');
+
+            if (!locationFile) {
+                alert('Please upload location data.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('location_data', locationFile);
+
+            routeOutputPre.textContent = 'Optimizing route...';
+            routeResultsDiv.style.display = 'block';
+
+            try {
+                const response = await fetch('/api/optimize-route', { // Replace with your backend API endpoint
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                routeOutputPre.textContent = JSON.stringify(data, null, 2);
+            } catch (error
