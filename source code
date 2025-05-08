@@ -1,0 +1,151 @@
+import pandas as pd
+from statsmodels.tsa.arima.model import ARIMA
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+def load_sales_data(file_path):
+    """Loads historical sales data from a CSV file."""
+    try:
+        df = pd.read_csv(file_path, index_col='Date', parse_dates=True)
+        return df
+    except FileNotFoundError:
+        print(f"Error: File not found at {file_path}")
+        return None
+
+def preprocess_data(df, product_id):
+    """Selects data for a specific product and handles missing values."""
+    if product_id not in df['ProductID'].unique():
+        print(f"Error: Product ID {product_id} not found.")
+        return None
+    product_data = df[df['ProductID'] == product_id]['Sales'].resample('M').sum() # Monthly aggregation
+    product_data = product_data.fillna(product_data.mean()) # Simple imputation
+    return product_data
+
+def train_forecast_model(data, order=(5, 1, 0), steps=12):
+    """Trains an ARIMA model and forecasts future demand."""
+    train, test = train_test_split(data, test_size=0.2, shuffle=False)
+    model = ARIMA(train, order=order)
+    model_fit = model.fit()
+    predictions = model_fit.predict(start=len(train), end=len(data)-1 + steps)
+    mse = mean_squared_error(test, predictions[:len(test)])
+    return model_fit, predictions, mse
+
+def get_demand_forecast(model_fit, steps=12):
+    """Generates future demand forecast using a trained model."""
+    forecast = model_fit.predict(start=model_fit.nobs, end=model_fit.nobs + steps - 1)
+    return forecast
+
+# --- 2. Route Optimization ---
+import numpy as np
+from scipy.spatial.distance import pdist, squareform
+from itertools import permutations
+
+def load_location_data(file_path):
+    """Loads location data (e.g., customer addresses with coordinates)."""
+    try:
+        df = pd.read_csv(file_path)
+        if 'Latitude' not in df.columns or 'Longitude' not in df.columns:
+            print("Error: Location data must contain 'Latitude' and 'Longitude' columns.")
+            return None
+        return df[['Latitude', 'Longitude']].values
+    except FileNotFoundError:
+        print(f"Error: File not found at {file_path}")
+        return None
+
+def calculate_distance_matrix(locations):
+    """Calculates the pairwise distance matrix between locations (Euclidean distance)."""
+    distance_array = pdist(locations, metric='euclidean')
+    distance_matrix = squareform(distance_array)
+    return distance_matrix
+
+def calculate_total_distance(route, distance_matrix):
+    """Calculates the total distance of a given route."""
+    total_distance = 0
+    num_locations = len(route)
+    for i in range(num_locations - 1):
+        current_location = route[i]
+        next_location = route[i+1]
+        total_distance += distance_matrix[current_location][next_location]
+    # Return to the starting point (if it's a round trip)
+    total_distance += distance_matrix[route[-1]][route[0]]
+    return total_distance
+
+def optimize_route_brute_force(distance_matrix):
+    """Optimizes the route using a brute-force approach (for small number of locations)."""
+    num_locations = len(distance_matrix)
+    if num_locations > 10: # Brute force becomes computationally expensive quickly
+        print("Warning: Brute-force optimization is not recommended for a large number of locations.")
+        return None, float('inf')
+
+    shortest_distance = float('inf')
+    best_route = None
+    locations = list(range(num_locations))
+    for perm in permutations(locations):
+        current_distance = calculate_total_distance(list(perm), distance_matrix)
+        if current_distance < shortest_distance:
+            shortest_distance = current_distance
+            best_route = list(perm)
+    return best_route, shortest_distance
+
+# --- 3. Integrating Demand Forecasts with Route Optimization (Conceptual) ---
+
+def adjust_route_for_demand(optimized_route, demand_forecasts, location_ids):
+    """
+    (Conceptual) Adjusts the optimized route based on predicted demand at each location.
+    This is a simplified example and would require more complex logic in a real-world scenario.
+    """
+    adjusted_route = []
+    demand_info = {}
+    for i, location_index in enumerate(optimized_route):
+        location_id = location_ids[location_index]
+        demand = demand_forecasts.get(location_id, 0)
+        demand_info[location_id] = demand
+        adjusted_route.append((location_index, demand)) # Include demand in the route
+
+    print("\nAdjusted Route with Demand:")
+    for location, demand in adjusted_route:
+        location_id = location_ids[location]
+        print(f"Location ID: {location_id}, Index: {location}, Predicted Demand: {demand}")
+
+    return adjusted_route, demand_info
+
+# --- Main Execution (Illustrative) ---
+
+if _name_ == "_main_":
+    # --- Demand Forecasting ---
+    sales_file = 'sales_data.csv' # Replace with your actual file path
+    product_to_forecast = 'ProductA' # Replace with the product you want to forecast
+    sales_df = load_sales_data(sales_file)
+
+    if sales_df is not None:
+        product_data = preprocess_data(sales_df, product_to_forecast)
+        if product_data is not None:
+            forecast_model, future_predictions, mse = train_forecast_model(product_data)
+            print(f"Demand Forecasting for {product_to_forecast}:")
+            print(future_predictions)
+            print(f"ARIMA Model Mean Squared Error: {mse:.2f}")
+
+    # --- Route Optimization ---
+    location_file = 'locations.csv' # Replace with your actual file path
+    location_data = load_location_data(location_file)
+
+    if location_data is not None:
+        distance_matrix = calculate_distance_matrix(location_data)
+        best_route, shortest_distance = optimize_route_brute_force(distance_matrix)
+
+        if best_route:
+            print("\nOptimized Route (Brute Force):")
+            print(f"Route Order: {best_route}")
+            print(f"Shortest Distance: {shortest_distance:.2f}")
+
+            # --- Integrating with Demand (Conceptual) ---
+            # Assuming you have a way to map locations in the route to product demands
+            # This is a very basic example and needs to be adapted to your specific data structure
+            location_ids = [f"Location_{i+1}" for i in range(len(location_data))] # Example IDs
+            future_demand_dict = {location_ids[i]: future_predictions[i % len(future_predictions)] for i in range(len(location_data))} # Example mapping
+
+            if best_route:
+                adjusted_route, demand_info = adjust_route_for_demand(best_route, future_demand_dict, location_ids)
+                # Further logic to modify the route based on demand could be implemented here
+        else:
+            print("Route optimization could not be performed.")
