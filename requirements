@@ -1,0 +1,52 @@
+| *ID* | *Requirement*                                                   |
+| ------ | ----------------------------------------------------------------- |
+| BR1    | Improve delivery times across supply chain network                |
+| BR2    | Reduce overall transportation and logistics costs                 |
+| BR3    | Enhance customer satisfaction through on-time deliveries          |
+| BR4    | Increase forecasting accuracy to minimize stockouts and overstock |
+| BR5    | Use data-driven insights for strategic logistics decisions        |
+
+
+  | *ID* | *Requirement*                                                                 |
+| ------ | ------------------------------------------------------------------------------- |
+| FR1    | Develop a demand forecasting module using historical sales data                 |
+| FR2    | Implement a route optimization engine using real-time traffic and distance data |
+| FR3    | Integrate forecasting with inventory and order management systems               |
+| FR4    | Enable user interface for adjusting forecasts and optimized routes              |
+| FR5    | Provide real-time dashboard showing KPIs like forecast accuracy, delivery time  |
+| FR6    | Allow alerts/notifications for delays, demand spikes, or route issues           |
+
+
+  | *ID* | *Requirement*                                              |
+| ------ | ------------------------------------------------------------ |
+| DR1    | Access to historical sales data by product, region, and time |
+| DR2    | Real-time traffic, weather, and road condition data          |
+| DR3    | Inventory levels at warehouses and lead times from suppliers |
+| DR4    | Customer profiles, locations, and order history              |
+| DR5    | Fuel prices and transportation cost data                     |
+
+
+  | *ID* | *Requirement*                                                            |
+| ------ | -------------------------------------------------------------------------- |
+| SR1    | Cloud infrastructure for scalable data processing and storage              |
+| SR2    | APIs to integrate with ERP, CRM, and supply chain management systems       |
+| SR3    | Mobile access for delivery personnel and field staff                       |
+| SR4    | High system availability (uptime > 99.9%)                                  |
+| SR5    | Modular architecture for future enhancements (e.g., multi-modal logistics) |
+
+
+  | *ID* | *Requirement*                                                            |
+| ------ | -------------------------------------------------------------------------- |
+| NFR1   | System should respond to queries within 2 seconds                          |
+| NFR2   | Ensure GDPR and data protection compliance                                 |
+| NFR3   | Models used for forecasting should be explainable and auditable            |
+| NFR4   | Route optimization should update based on live conditions within 5 minutes |
+| NFR5   | Secure role-based access control for different users                       |
+
+
+  | *ID* | *Requirement*                                                               |
+| ------ | ----------------------------------------------------------------------------- |
+| UR1    | Supply chain managers can view and adjust forecasts and routing suggestions   |
+| UR2    | Analysts can monitor forecasting model performance and tune parameters        |
+| UR3    | Logistics personnel receive optimized routes on mobile devices                |
+| UR4    | Executives have access to reports on cost savings and operational performance |
